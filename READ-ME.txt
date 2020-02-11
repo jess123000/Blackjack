@@ -1,0 +1,4 @@
+To play run the Blackjack.py file.
+To get another card, press hit. 
+To stay, press anywhere but the hit button.
+blackjackExtended.py currently does not work.
