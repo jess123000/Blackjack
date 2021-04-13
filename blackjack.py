@@ -9,7 +9,7 @@
 from graphics import *
 from CardDeck import *
 
-#----------------------------------------------------------------------
+#----------------------written by Dave Reed----------------------
 
 def drawCard(filename: str, x: int, y: int, window: GraphWin):
 
@@ -26,7 +26,7 @@ def drawCard(filename: str, x: int, y: int, window: GraphWin):
         except:
             pass
 
-#----------------------------------------------------------------------
+#----------------------written by Dave Reed------------------------
 
 def cardInfo(cardNumber) -> (int, str):
 
