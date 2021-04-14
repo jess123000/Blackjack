@@ -95,16 +95,16 @@ class Blackjack:
     # ----------------------------------------------------------------------
 
     def checkIfAce(self, value: int, dealerPlayer: str) -> None:
-        # determine if dealer or player drew
+        # determine if dealer or player is going
         if dealerPlayer == "player":
             # check if it's an ace
             if value == 11:
-                self.aceToDrawPlayer = Text(Point(100 * self.totalPlayerCards, 475), value)
+                self.aceToDrawPlayer = Text(Point(100 * self.totalPlayerCards, 175), value)
                 self.aceToDrawPlayer.draw(self.win)
                 self.acePlayer += 1
                 self.aceCardNumberPlayer = self.totalPlayerCards
             else:
-                valueToDraw = Text(Point(100 * self.totalPlayerCards, 475), value)
+                valueToDraw = Text(Point(100 * self.totalPlayerCards, 175), value)
                 valueToDraw.draw(self.win)
         else:
             # check if it's an ace
@@ -120,9 +120,9 @@ class Blackjack:
     # ----------------------------------------------------------------------
 
     def aceToOne(self, dealerPlayer: str, totalToDraw) -> None:
+        # determine if dealer or player is going
         if dealerPlayer == "player":
-            self.totalPlayerValue -= 11
-            self.totalPlayerValue += 1
+            self.totalPlayerValue -= 10
             totalToDraw.undraw()
             totalToDraw = Text(Point(100, 200), f"Total: {self.totalPlayerValue}")
             totalToDraw.draw(self.win)
@@ -134,11 +134,10 @@ class Blackjack:
             self.aceToDrawDealer.undraw()
             totalToDraw.undraw()
             self.aceDealer -= 1
-            self.totalPlayerValue -= 11
-            self.totalPlayerValue += 1
+            self.totalPlayerValue -= 10
             totalToDraw = Text(Point(100, 500), f"Total: {self.totalPlayerValue}")
             totalToDraw.draw(self.win)
-            self.aceToDrawDealer = Text(Point(100 * self.aceCardNumberDealer, 475), 1)
+            self.aceToDrawDealer = Text(Point(100 * self.aceCardNumberDealer, 475), "1")
             self.aceToDrawDealer.draw(self.win)
 
     # ----------------------------------------------------------------------
@@ -147,13 +146,13 @@ class Blackjack:
 
         # deal the card if user clicks the hit box
         hit = self.win.getMouse()
-        xHit = hit.getX()
-        yHit = hit.getY()
-        while (600 <= xHit <= 700) and (200 <= yHit <= 250):
+        # while user clicked the hit box
+        while (600 <= hit.x <= 700) and (200 <= hit.y <= 250):
             totalToDraw.undraw()
             card = self.deck.dealOne()
             value, filename = self.cardInfo(card)
             self.totalPlayerCards += 1
+            self.totalPlayerValue += value
             self.drawCard(filename, 100 * self.totalPlayerCards, 100)
 
             self.checkIfAce(value, "player")
@@ -161,6 +160,10 @@ class Blackjack:
             # if the player busts and there's an ace, change the value to 1
             while self.totalPlayerValue > 21 and self.acePlayer >= 1:
                 self.aceToOne("player", totalToDraw)
+
+            # display the total
+            totalToDraw = Text(Point(100, 200), f"Total: {self.totalPlayerValue}")
+            totalToDraw.draw(self.win)
 
             # if the player busts and there is no ace, dealer won
             if self.totalPlayerValue > 21:
@@ -170,8 +173,6 @@ class Blackjack:
 
             # check if Hit box is clicked
             hit = self.win.getMouse()
-            xHit = hit.getX()
-            yHit = hit.getY()
 
         # if player didn't bust, find who won normally
         return False
@@ -181,7 +182,7 @@ class Blackjack:
     def dealDealersCards(self, totalToDraw: Text) -> bool:
 
         # deal card until the dealer has a total of 17
-        while self.totalPlayerValue < 17:
+        while self.totalDealerValue < 17:
             totalToDraw.undraw()
             card = self.deck.dealOne()
             self.totalDealerCards += 1
@@ -191,16 +192,16 @@ class Blackjack:
             self.checkIfAce(value, "dealer")
 
             # increment and draw total
-            self.totalPlayerValue += value
-            totalToDraw = Text(Point(100, 500), f"Total: {self.totalPlayerValue}")
+            self.totalDealerValue += value
+            totalToDraw = Text(Point(100, 500), f"Total: {self.totalDealerValue}")
             totalToDraw.draw(self.win)
 
             # if the dealer busts and has an ace, change it's value to 1
-            while self.totalPlayerValue > 21 and self.aceDealer >= 1:
+            while self.totalDealerValue > 21 and self.aceDealer >= 1:
                 self.aceToOne("dealer", totalToDraw)
 
             # if the dealer busts with no ace, end the game
-            if self.totalPlayerValue > 21:
+            if self.totalDealerValue > 21:
                 bust = Text(Point(100, 525), "Busted!")
                 bust.draw(self.win)
                 return True
@@ -215,22 +216,19 @@ class Blackjack:
         card = self.deck.dealOne()
         value, filename = self.cardInfo(card)
         self.drawCard(filename, 100, 100)
-
-        self.checkIfAce(value, "player")
-
-        # increment some variables
         self.totalPlayerCards += 1
         self.totalPlayerValue += value
+        self.checkIfAce(value, "player")
 
         # deal second card to the player and display it
         card = self.deck.dealOne()
         value, filename = self.cardInfo(card)
         self.drawCard(filename, 200, 100)
-        self.checkIfAce(value, "player")
-
-        # increment and display the total
         self.totalPlayerCards += 1
         self.totalPlayerValue += value
+        self.checkIfAce(value, "player")
+
+        # display the total
         totalToDraw = Text(Point(100, 200), f"Total: {self.totalPlayerValue}")
         totalToDraw.draw(self.win)
 
@@ -251,12 +249,16 @@ class Blackjack:
         totalDealerToDraw.draw(self.win)
 
         dealerWins = self.dealPlayerCards(totalToDraw)
-        playerWins = self.dealDealersCards(totalDealerToDraw)
-
-        # determine who won
+        # if player busted
         if dealerWins:
-            whoWins = Text(Point(400, 300), "Dealer wins!")
-        elif playerWins:
+            Text(Point(400, 300), "Dealer wins!").draw(self.win)
+            # wait for mouse click before closing window
+            self.win.getMouse()
+            self.win.close()
+
+        playerWins = self.dealDealersCards(totalDealerToDraw)
+        # if dealer busted
+        if playerWins:
             whoWins = Text(Point(400, 300), "Player wins!")
         elif self.totalDealerValue < self.totalPlayerValue:
             whoWins = Text(Point(400, 300), "Player wins!")
